@@ -5,11 +5,12 @@ body {
     margin:0px; padding:0px;
     font-family: 'Press Start 2P', cursive;
 }
+
 container {
-    display: block;
-    width: 1000px;
-    height: 600px;
-    margin: auto;
+    background-repeat: no-repeat;
+    width: 1000px; height: 600px;
+    left: 50%; right: 50%;
+    transform: translate(-50%, -50%);
     overflow: hidden;
 }
 
@@ -29,17 +30,17 @@ score {
     padding:20px;
 }
 
-car-component {
+car {
     background-image: url(../images/car.png);
     width:145px; height: 45px;
 }
 
-wheel-component {
+wheel {
     background-image: url(../images/wheel.png);
     width:22px; height: 22px;
 }
 
-rock-component {
+rock {
     background-image: url(../images/rock.png);
     width:62px; height: 62px;
 }

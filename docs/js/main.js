@@ -1,172 +1,235 @@
-class Wheel extends HTMLElement {
-    constructor(car, offsetCarX) {
-        super();
-        this.style.transform = `translate(${offsetCarX}px, 30px)`;
-        car.appendChild(this);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var GameObject = (function () {
+    function GameObject(tag, parent) {
+        this._x = 0;
+        this._y = 0;
+        this.div = document.createElement(tag);
+        parent.appendChild(this.div);
     }
-}
-window.customElements.define("wheel-component", Wheel);
-class Car extends HTMLElement {
-    constructor(yIndex, game) {
-        super();
-        this.x = 0;
-        this.y = 0;
-        this.speed = Math.random() * 2 + 1;
-        this.braking = false;
-        this.stopped = false;
-        this.game = game;
-        this.X = 0;
-        this.Y = (70 * yIndex) + 80;
-        new Wheel(this, 105);
-        new Wheel(this, 20);
-        document.addEventListener("keydown", (e) => this.handleKeyDown(e));
-        this.addEventListener("click", (e) => this.handleMouseClick(e));
-        let parent = document.getElementById("container");
-        parent.appendChild(this);
+    Object.defineProperty(GameObject.prototype, "x", {
+        get: function () { return this._x; },
+        set: function (value) { this._x = value; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(GameObject.prototype, "y", {
+        get: function () { return this._y; },
+        set: function (value) { this._y = value; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(GameObject.prototype, "div", {
+        get: function () { return this._div; },
+        set: function (value) { this._div = value; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(GameObject.prototype, "width", {
+        get: function () { return this._div.clientWidth; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(GameObject.prototype, "height", {
+        get: function () { return this._div.clientHeight; },
+        enumerable: true,
+        configurable: true
+    });
+    return GameObject;
+}());
+var Car = (function (_super) {
+    __extends(Car, _super);
+    function Car(yIndex) {
+        var _this = _super.call(this, "car", document.getElementById("container")) || this;
+        _this._speed = Math.random() * 2 + 1;
+        _this.x = 0;
+        _this.y = (70 * yIndex) + 80;
+        var frontWheel = new Wheel(_this.div, 105);
+        var rearWheel = new Wheel(_this.div, 20);
+        document.addEventListener("keydown", function (e) { return _this.handleKeyDown(e); });
+        _this.div.addEventListener("click", function (e) { return _this.handleMouseClick(e); });
+        return _this;
     }
-    get Speed() { return this.speed; }
-    get X() { return this.x; }
-    set X(value) { this.x = value; }
-    get Y() { return this.y; }
-    set Y(value) { this.y = value; }
-    get width() { return this.clientWidth; }
-    get height() { return this.clientHeight; }
-    handleMouseClick(e) {
+    Object.defineProperty(Car.prototype, "speed", {
+        get: function () {
+            return this._speed;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Car.prototype.handleMouseClick = function (e) {
         this.braking = true;
         this.changeColor(80);
-    }
-    handleKeyDown(e) {
+    };
+    Car.prototype.handleKeyDown = function (e) {
         if (e.key == ' ') {
             this.braking = true;
         }
-    }
-    move() {
-        this.X += this.speed;
+    };
+    Car.prototype.move = function () {
+        this.x += this._speed;
         if (this.braking)
-            this.speed *= 0.98;
-        if (this.speed < 0.5)
-            this.speed = 0;
-        if (this.speed == 0 && this.braking && !this.stopped) {
-            this.changeColor(80);
-            this.game.addScore(this.X);
+            this._speed *= 0.98;
+        if (this._speed < 0.5)
+            this._speed = 0;
+        if (this._speed == 0 && this.braking) {
+            Game.instance().addScore(this.x);
+            console.log("end");
             this.braking = false;
-            this.stopped = true;
         }
         this.draw();
-    }
-    crash() {
-        this.speed = 0;
+    };
+    Car.prototype.stop = function () {
+        this._speed = 0;
         this.braking = false;
         this.changeColor(300);
-    }
-    changeColor(deg) {
-        this.style.filter = `hue-rotate(${deg}deg)`;
-    }
-    draw() {
-        this.style.transform = `translate(${this.X}px,${this.Y}px)`;
-    }
-}
-window.customElements.define("car-component", Car);
-class Game {
-    constructor() {
-        this.cars = [];
-        this.rocks = [];
+    };
+    Car.prototype.changeColor = function (deg) {
+        this.div.style.filter = "hue-rotate(" + deg + "deg)";
+    };
+    Car.prototype.draw = function () {
+        this.div.style.transform = "translate(" + this.x + "px," + this.y + "px)";
+    };
+    Car.prototype.hasCollision = function (rock) {
+        return (this.x < rock.x + rock.width &&
+            this.x + this.width > rock.x &&
+            this.y < rock.y + rock.height &&
+            this.y + this.height > rock.y);
+    };
+    return Car;
+}(GameObject));
+var Game = (function () {
+    function Game() {
+        var _this = this;
         this.score = 0;
         this.request = 0;
-        this.gameover = false;
-        for (let i = 0; i < 6; i++) {
+        this._gameOver = false;
+        this.cars = new Array();
+        this.rocks = new Array();
+        var tree = new Tree();
+        for (var i = 0; i < 6; i++) {
             this.addCarWithRock(i);
         }
-        this.gameLoop();
+        this.request = requestAnimationFrame(function () { return _this.gameLoop(); });
     }
-    addCarWithRock(index) {
-        this.cars.push(new Car(index, this));
+    Game.instance = function () {
+        if (!Game._instance)
+            Game._instance = new Game();
+        return Game._instance;
+    };
+    Game.prototype.addCarWithRock = function (index) {
+        this.cars.push(new Car(index));
         this.rocks.push(new Rock(index));
-    }
-    gameLoop() {
-        for (let car of this.cars) {
+    };
+    Game.prototype.gameLoop = function () {
+        var _this = this;
+        for (var _i = 0, _a = this.cars; _i < _a.length; _i++) {
+            var car = _a[_i];
             car.move();
         }
-        for (let rock of this.rocks) {
+        for (var _b = 0, _c = this.rocks; _b < _c.length; _b++) {
+            var rock = _c[_b];
             rock.move();
         }
         this.checkCollision();
-        this.request = requestAnimationFrame(() => this.gameLoop());
-    }
-    checkCollision() {
-        for (let car of this.cars) {
-            for (let rock of this.rocks) {
-                if (this.hasCollision(car, rock)) {
-                    rock.crashed(car.Speed);
-                    car.crash();
+        console.log("hier");
+        this.request = requestAnimationFrame(function () { return _this.gameLoop(); });
+    };
+    Game.prototype.checkCollision = function () {
+        for (var _i = 0, _a = this.cars; _i < _a.length; _i++) {
+            var car = _a[_i];
+            for (var _b = 0, _c = this.rocks; _b < _c.length; _b++) {
+                var rock = _c[_b];
+                if (car.hasCollision(rock)) {
+                    rock.crashed(car.speed);
+                    car.stop();
                     this.gameOver();
                 }
             }
         }
-    }
-    gameOver() {
-        this.gameover = true;
+    };
+    Game.prototype.gameOver = function () {
+        this._gameOver = true;
         document.getElementById("score").innerHTML = "Game Over";
-        cancelAnimationFrame(this.request);
-    }
-    addScore(x) {
-        if (!this.gameover) {
+    };
+    Game.prototype.addScore = function (x) {
+        if (!this._gameOver) {
             this.score += Math.floor(x);
             this.draw();
         }
-    }
-    draw() {
+    };
+    Game.prototype.draw = function () {
         document.getElementById("score").innerHTML = "Score : " + this.score;
+    };
+    return Game;
+}());
+window.addEventListener("load", function () {
+    Game.instance();
+});
+var Rock = (function (_super) {
+    __extends(Rock, _super);
+    function Rock(index) {
+        var _this = _super.call(this, "rock", document.getElementById("container")) || this;
+        _this.g = 0;
+        _this.rotation = 0;
+        _this.rotationSpeed = 0;
+        _this._speed = 0;
+        _this.x = Math.random() * 400 + 400;
+        _this.y = (70 * index) + 80;
+        _this.move();
+        return _this;
     }
-    hasCollision(rect1, rect2) {
-        return (rect1.X < rect2.X + rect2.width &&
-            rect1.X + rect1.width > rect2.X &&
-            rect1.Y < rect2.Y + rect2.height &&
-            rect1.Y + rect1.height > rect2.Y);
-    }
-}
-window.addEventListener("load", () => new Game());
-class Rock extends HTMLElement {
-    constructor(index) {
-        super();
-        this.x = 0;
-        this.y = 0;
-        this.speed = 0;
-        this.g = 0;
-        this.rotation = 0;
-        this.rotationSpeed = 0;
-        this.X = Math.random() * 400 + 400;
-        this.Y = (70 * index) + 80;
-        let parent = document.getElementById("container");
-        parent.appendChild(this);
-    }
-    set Speed(s) { this.speed = s; }
-    get X() { return this.x; }
-    set X(value) { this.x = value; }
-    get Y() { return this.y; }
-    set Y(value) { this.y = value; }
-    get width() { return this.clientWidth; }
-    get height() { return this.clientHeight; }
-    move() {
-        this.X += this.speed;
-        this.Y += this.g;
-        this.speed *= 0.98;
+    Object.defineProperty(Rock.prototype, "speed", {
+        set: function (s) {
+            this._speed = s;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Rock.prototype.move = function () {
+        this.x += this._speed;
+        this.y += this.g;
+        this._speed *= 0.98;
         this.rotation += this.rotationSpeed;
-        if (this.Y + this.clientHeight > document.getElementById("container").clientHeight) {
-            this.speed = 0;
+        if (this.y + this.div.clientHeight > document.getElementById("container").clientHeight) {
+            this._speed = 0;
             this.g = 0;
             this.rotationSpeed = 0;
         }
-        this.draw();
-    }
-    draw() {
-        this.style.transform = `translate(${this.X}px,${this.Y}px)`;
-    }
-    crashed(carSpeed) {
-        this.g = 9.81;
-        this.speed = carSpeed;
+        this.div.style.transform = "translate(" + this.x + "px," + this.y + "px) rotate(" + this.rotation + "deg)";
+    };
+    Rock.prototype.crashed = function (carSpeed) {
+        this._speed = carSpeed;
+        this.g = 8;
         this.rotationSpeed = 5;
+    };
+    return Rock;
+}(GameObject));
+var Tree = (function (_super) {
+    __extends(Tree, _super);
+    function Tree() {
+        return _super.call(this, 'tree', document.getElementById("container")) || this;
     }
-}
-window.customElements.define("rock-component", Rock);
+    return Tree;
+}(GameObject));
+var Wheel = (function (_super) {
+    __extends(Wheel, _super);
+    function Wheel(parent, offsetCarX) {
+        var _this = _super.call(this, "wheel", parent) || this;
+        _this.div.style.transform = "translate(" + offsetCarX + "px, 30px)";
+        return _this;
+    }
+    return Wheel;
+}(GameObject));
 //# sourceMappingURL=main.js.map

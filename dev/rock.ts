@@ -1,62 +1,51 @@
-class Rock extends HTMLElement{
-    // Fields 
-    private x : number = 0
-    private y : number = 0
-
-    private speed           : number = 0
-    private g               : number = 0 // gravity
-    private rotation        : number = 0
-    private rotationSpeed   : number = 0
-
-    // Properties
-    public set Speed(s  : number)   { this.speed = s }     
-
-	public get X()      : number    { return this.x    }
-	public set X(value  : number)   { this.x = value   }
-
-	public get Y()      : number    { return this.y    }
-	public set Y(value  : number)   { this.y = value   }
+/// <reference path="gameObject.ts" />
 
 
-    public get width()  : number    { return this.clientWidth }
-    public get height() : number    { return this.clientHeight }
+class Rock extends GameObject {
+
+    private _speed:number;
+    private g : number = 0;
+    private rotation = 0;
+    private rotationSpeed = 0;
+
+    public set speed(s : number) {
+        this._speed = s;
+    }     
 
     constructor(index) {
-        super()
-        this.X = Math.random() * 400 + 400
-        this.Y = (70 * index) + 80
+        super("rock", document.getElementById("container"));
+        this._speed = 0;
 
-        let parent: HTMLElement = document.getElementById("container")
-        parent.appendChild(this)
+        this.x = Math.random() * 400 + 400;
+        this.y = (70 * index) + 80;
+
+        this.move();
     }
 
     public move():void {
+
         // speed optellen zo lang we niet de bodem raken
         // speed wordt hoger dan 0 zodra de auto de rots raakt
-        this.X += this.speed
-        this.Y += this.g
-        this.speed *= 0.98
-        this.rotation += this.rotationSpeed
+        this.x += this._speed;
+        this.y += this.g;
+        this._speed *= 0.98;
+        this.rotation += this.rotationSpeed;
 
-        if (this.Y + this.clientHeight > document.getElementById("container").clientHeight){
-            this.speed = 0
-            this.g = 0
-            this.rotationSpeed = 0
+        if (this.y + this.div.clientHeight > document.getElementById("container").clientHeight){
+            this._speed = 0;
+            this.g = 0;
+            this.rotationSpeed = 0;
         }
 
         //teken de div op de juiste positie
-        this.draw()
-    }
-
-    private draw() : void {
-        this.style.transform =`translate(${this.X}px,${this.Y}px)`
+        this.div.style.transform = "translate("+this.x+"px,"+this.y+"px) rotate("+this.rotation+"deg)"
+        
+            
     }
 
     public crashed(carSpeed : number) {
-        this.g = 9.81
-        this.speed = carSpeed
-        this.rotationSpeed = 5
+        this._speed = carSpeed;
+        this.g = 8;
+        this.rotationSpeed = 5;
     }
 }
-
-window.customElements.define("rock-component", Rock as any)

@@ -1,75 +1,87 @@
+/// <reference path="car.ts"/>
+
 class Game {
 
-    // Fields
-    private cars    : Car[]     = []
-    private rocks   : Rock[]    = []
-    private score   : number    = 0
-    private request : number    = 0
-    private gameover: boolean   = false
+    private static _instance : Game;
 
+    private cars  : Array<Car>;
+    private rocks : Array<Rock>;
+    private score : number = 0;
+    private request: number = 0;
+    private _gameOver: boolean = false;
 
-    constructor() {
-        for(let i = 0 ; i < 6 ; i++) {
-            this.addCarWithRock(i)
+    public static instance() : Game {
+        if(!Game._instance) Game._instance = new Game();
+        return Game._instance;
+    }
+
+    private constructor() {
+        this.cars = new Array<Car>();
+        this.rocks = new Array<Rock>();
+
+        for(let i = 0; i < 6 ; i++) {
+            this.addCarWithRock(i);
         }
 
-        this.gameLoop()
+        this.request = requestAnimationFrame(() => this.gameLoop());
     }
 
     private addCarWithRock(index : number) {
-        this.cars.push(new Car(index, this))
-        this.rocks.push(new Rock(index))
+        this.cars.push(new Car(index));
+        this.rocks.push(new Rock(index));
+
     }
 
     private gameLoop(){
+
         for(let car of this.cars){
-            car.move()
+            car.move();
         }
         for(let rock of this.rocks) {
-            rock.move()
+            rock.move();
         }
 
-        this.checkCollision()
+        this.checkCollision();
+        console.log("hier");
         
-        this.request = requestAnimationFrame(() => this.gameLoop())
+        this.request = requestAnimationFrame(() => this.gameLoop());
     }
 
     private checkCollision() {
         for(let car of this.cars) {
             for(let rock of this.rocks) {
-                if(this.hasCollision(car, rock)) {
-                    rock.crashed(car.Speed)
-                    car.crash()
-                    this.gameOver()
+                if(car.hasCollision(rock)) {
+                    rock.crashed(car.speed);
+                    car.stop();
+                    this.gameOver();
+                    //this.stop();
                 }
             }
         }
     }
 
+    // private stop() {
+    //     cancelAnimationFrame(this.request);
+    // }
     private gameOver() : void{
-        this.gameover = true
-        document.getElementById("score").innerHTML = "Game Over"
-        cancelAnimationFrame(this.request)
+        this._gameOver = true;
+        document.getElementById("score").innerHTML = "Game Over";
     }
 
     public addScore(x : number){
-        if(!this.gameover) {
-            this.score += Math.floor(x)
-            this.draw()
+        if(!this._gameOver) {
+            this.score += Math.floor(x);
+            this.draw();
         }
     }
 
     private draw() {
-        document.getElementById("score").innerHTML = "Score : "+this.score
-    }
-
-    private hasCollision(rect1 : Car, rect2 : Rock) : boolean {
-        return (rect1.X < rect2.X + rect2.width &&
-                rect1.X + rect1.width > rect2.X &&
-                rect1.Y < rect2.Y + rect2.height &&
-                rect1.Y + rect1.height > rect2.Y)
+        document.getElementById("score").innerHTML = "Score : "+this.score;
     }
 } 
 
+
 // load
-window.addEventListener("load", () => new Game() )
+window.addEventListener("load", function() {
+    Game.instance();
+});

@@ -1,12 +1,10 @@
-class Wheel extends HTMLElement{
-                        
-    constructor(car : Car, offsetCarX : number) {
-        super()
-        
-        this.style.transform = `translate(${offsetCarX}px, 30px)`
+/// <reference path="gameObject.ts"/>
 
-        car.appendChild(this)
+class Wheel extends GameObject{
+                        
+    constructor(parent : HTMLElement, offsetCarX : number) {
+        super("wheel", parent);
+        
+        this.div.style.transform = "translate(" + offsetCarX + "px, 30px)";
     }
 }
-
-window.customElements.define("wheel-component", Wheel as any)
